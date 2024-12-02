@@ -90,6 +90,17 @@ func GetTotalDistance(left, right *[]int) int {
 	return totalDistance
 }
 
+func DetermineNumberOccurances(num int, list []int) int {
+	// Determine the number of times a number occurs in the list
+	occurances := 0
+	for _, value := range list {
+		if value == num {
+			occurances++
+		}
+	}
+	return occurances
+}
+
 func main() {
 	left, err := GetList("left")
 	if err != nil {
@@ -107,4 +118,17 @@ func main() {
 
 	totalDistance := GetTotalDistance(&left, &right)
 	fmt.Printf("The total distance is: %d\n", totalDistance)
+
+	similarityScore := 0
+
+	for _, value := range left {
+		occurances := DetermineNumberOccurances(value, right)
+		if occurances > 0 {
+			similarityScore += (occurances * value)
+		}
+
+		fmt.Printf("The number %d occurs %d times in the left list\n", value, occurances)
+	}
+
+	fmt.Printf("The similarity score is: %d\n", similarityScore)
 }
