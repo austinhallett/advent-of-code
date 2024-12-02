@@ -106,5 +106,5 @@ func main() {
 	SortListsNumericallyAscending(&right)
 
 	totalDistance := GetTotalDistance(&left, &right)
-	fmt.Println(totalDistance)
+	fmt.Printf("The total distance is: %d\n", totalDistance)
 }
