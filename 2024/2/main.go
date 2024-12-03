@@ -32,3 +32,110 @@
 // Analyze the unusual data from the engineers. How many reports are safe?
 
 package main
+
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+	"strings"
+)
+
+type Report struct {
+	Levels []int
+}
+
+type numeric interface {
+	~int | ~int8 | ~int16 | ~int32 | ~int64 |
+		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
+		~float32 | ~float64
+}
+
+func Abs[T numeric](val T) T {
+	if val < 0 {
+		return -val
+	}
+	return val
+}
+
+func (r *Report) IsSafe() bool {
+	increasing := r.Levels[1] > r.Levels[0]
+	for i, _ := range r.Levels {
+		if i == 0 {
+			continue
+		}
+		diff := Abs(r.Levels[i] - r.Levels[i-1])
+		isSequential := (increasing && r.Levels[i] > r.Levels[i-1]) || (!increasing && r.Levels[i] < r.Levels[i-1])
+		validDiff := 1 <= diff && diff <= 3
+		if !isSequential || !validDiff {
+			return false
+		}
+	}
+	return true
+}
+
+func stringToIntSlice(input string) ([]int, error) {
+	// Split the string into a slice of substrings
+	parts := strings.Fields(input)
+
+	// Create a slice to hold the integers
+	intSlice := make([]int, len(parts))
+
+	// Convert each substring to an integer
+	for i, part := range parts {
+		num, err := strconv.Atoi(part)
+		if err != nil {
+			return nil, err // Return an error if conversion fails
+		}
+		intSlice[i] = num
+	}
+	return intSlice, nil
+}
+
+func GetInput() ([]Report, error) {
+	// typically run from the year directory
+	file, err := os.Open("input.txt")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var reports []Report
+
+	// Use bufio.Scanner for line-by-line reading
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		// Trim spaces and split if numbers are space-separated
+		line := strings.TrimSpace(scanner.Text())
+		levels, err := stringToIntSlice(line) // Splits the line into parts by spaces
+		if err != nil {
+			fmt.Printf("Skipping invalid number: %s\n", line)
+			continue
+		}
+		reports = append(reports, Report{Levels: levels})
+	}
+
+	// Handle potential scanner errors
+	if err := scanner.Err(); err != nil {
+		log.Fatalf("Error reading file: %v", err)
+		return nil, err
+	}
+	return reports, nil
+}
+
+func main() {
+	reports, err := GetInput()
+	if err != nil {
+		log.Fatalf("GetInput: %v", err)
+	}
+
+	safeReports := 0
+	for _, report := range reports {
+		if report.IsSafe() {
+			safeReports++
+		}
+	}
+
+	fmt.Printf("Safe reports: %d\n", safeReports)
+}
